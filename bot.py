@@ -1,5 +1,6 @@
 import logging
 import os
+from pathlib import Path
 
 from dotenv import load_dotenv
 from telegram import InlineKeyboardButton, InlineKeyboardMarkup, Update
@@ -18,20 +19,16 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
-ARCHITECT_CALLBACK = "architect_link"
-DEFAULT_FILE_URL = (
-    "https://drive.google.com/file/d/1CNmTiUVRW8dyHEOMikiVusVfoT3JzJN2/view?usp=sharing"
-)
-FILE_URL = os.getenv("FILE_URL", DEFAULT_FILE_URL)
+ARCHITECT_CALLBACK = "architect_pdf"
+PDF_PATH = Path(os.getenv("PDF_PATH", "architect.pdf"))
 
 
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     """Надсилає кнопку 'Архітектор'."""
     keyboard = [[InlineKeyboardButton("Архітектор", callback_data=ARCHITECT_CALLBACK)]]
     reply_markup = InlineKeyboardMarkup(keyboard)
-
     await update.message.reply_text(
-        "Натисни кнопку, щоб отримати посилання на файл:",
+        "Натисни кнопку, щоб отримати PDF файл:",
         reply_markup=reply_markup,
     )
 
@@ -39,11 +36,22 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
 async def architect_button_handler(
     update: Update, context: ContextTypes.DEFAULT_TYPE
 ) -> None:
-    """Відправляє посилання після натискання на кнопку."""
+    """Відправляє PDF після натискання на кнопку."""
     query = update.callback_query
     await query.answer()
 
-    await query.message.reply_text(f"Ось посилання на файл:\n{FILE_URL}")
+    if not PDF_PATH.exists():
+        await query.message.reply_text(
+            f"Файл не знайдено: {PDF_PATH}. Додай PDF в проєкт або вкажи PDF_PATH."
+        )
+        return
+
+    with PDF_PATH.open("rb") as document:
+        await query.message.reply_document(
+            document=document,
+            filename=PDF_PATH.name,
+            caption="Ось ваш PDF файл 📄",
+        )
 
 
 def main() -> None:
@@ -54,7 +62,6 @@ def main() -> None:
         )
 
     application = Application.builder().token(token).build()
-
     application.add_handler(CommandHandler("start", start))
     application.add_handler(
         CallbackQueryHandler(architect_button_handler, pattern=f"^{ARCHITECT_CALLBACK}$")
