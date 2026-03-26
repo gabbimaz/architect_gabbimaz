@@ -2,6 +2,7 @@ import logging
 import os
 from pathlib import Path
 
+from dotenv import load_dotenv
 from telegram import InlineKeyboardButton, InlineKeyboardMarkup, Update
 from telegram.ext import (
     Application,
@@ -9,6 +10,8 @@ from telegram.ext import (
     CommandHandler,
     ContextTypes,
 )
+
+load_dotenv()
 
 logging.basicConfig(
     format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
@@ -24,7 +27,6 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     """Надсилає кнопку 'Архітектор'."""
     keyboard = [[InlineKeyboardButton("Архітектор", callback_data=ARCHITECT_CALLBACK)]]
     reply_markup = InlineKeyboardMarkup(keyboard)
-
     await update.message.reply_text(
         "Натисни кнопку, щоб отримати PDF файл:",
         reply_markup=reply_markup,
@@ -56,13 +58,14 @@ def main() -> None:
     token = os.getenv("BOT_TOKEN")
     if not token:
         raise ValueError(
-            "Не знайдено BOT_TOKEN. Додай токен бота в змінні оточення."
+            "Не знайдено BOT_TOKEN. Додай токен бота в .env або змінні оточення."
         )
 
     application = Application.builder().token(token).build()
-
     application.add_handler(CommandHandler("start", start))
-    application.add_handler(CallbackQueryHandler(architect_button_handler, pattern=f"^{ARCHITECT_CALLBACK}$"))
+    application.add_handler(
+        CallbackQueryHandler(architect_button_handler, pattern=f"^{ARCHITECT_CALLBACK}$")
+    )
 
     logger.info("Бот запущений...")
     application.run_polling()
