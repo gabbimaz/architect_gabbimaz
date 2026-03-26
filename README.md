@@ -1,5 +1,4 @@
 # Telegram бот: кнопка "Архітектор" -> PDF
-
 Цей бот після натискання на кнопку **«Архітектор»** надсилає PDF-файл у чат.
 
 ## 1) Отримай токен у BotFather
@@ -17,12 +16,10 @@ pip install -r requirements.txt
 
 ## 3) Налаштуй `.env`
 У проєкті вже є файл `.env`. Відкрий його і встав свій токен:
-
 ```env
 BOT_TOKEN=PASTE_YOUR_BOTFATHER_TOKEN_HERE
 PDF_PATH=architect.pdf
 ```
-
 - `BOT_TOKEN` — токен із BotFather.
 - `PDF_PATH` — шлях до PDF (можна абсолютний або відносний).
 
