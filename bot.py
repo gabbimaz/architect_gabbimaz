@@ -1,6 +1,5 @@
 import logging
 import os
-from pathlib import Path
 
 from dotenv import load_dotenv
 from telegram import InlineKeyboardButton, InlineKeyboardMarkup, Update
@@ -20,11 +19,10 @@ logging.basicConfig(
 logger = logging.getLogger(__name__)
 
 ARCHITECT_CALLBACK = "architect_pdf"
-PDF_PATH = Path(os.getenv("PDF_PATH", "architect.pdf"))
+FILE_URL = os.getenv("FILE_URL", "")
 
 
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-    """Надсилає кнопку 'Архітектор'."""
     keyboard = [[InlineKeyboardButton("Архітектор", callback_data=ARCHITECT_CALLBACK)]]
     reply_markup = InlineKeyboardMarkup(keyboard)
     await update.message.reply_text(
@@ -36,22 +34,16 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
 async def architect_button_handler(
     update: Update, context: ContextTypes.DEFAULT_TYPE
 ) -> None:
-    """Відправляє PDF після натискання на кнопку."""
     query = update.callback_query
     await query.answer()
 
-    if not PDF_PATH.exists():
-        await query.message.reply_text(
-            f"Файл не знайдено: {PDF_PATH}. Додай PDF в проєкт або вкажи PDF_PATH."
-        )
+    if not FILE_URL:
+        await query.message.reply_text("Посилання не налаштовано. Додай FILE_URL у .env")
         return
 
-    with PDF_PATH.open("rb") as document:
-        await query.message.reply_document(
-            document=document,
-            filename=PDF_PATH.name,
-            caption="Ось ваш PDF файл 📄",
-        )
+    await query.message.reply_text(
+        f"Ось ваш файл 📄\n{FILE_URL}"
+    )
 
 
 def main() -> None:
